@@ -1,4 +1,4 @@
-FROM golang:latest AS builder
+FROM golang:latest AS builder   #不能使用最新的go编译要使用1.11之前的版本
 
 RUN mkdir -p /go/src/github.com/osswangxining/go-echo
 COPY . /go/src/github.com/osswangxining/go-echo

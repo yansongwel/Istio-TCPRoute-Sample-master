@@ -2,25 +2,108 @@
 
 A Simple go TCP echo server. Written to learn and test [Kubernetes | Istio] TCP networking.
 
+## TCP Server镜像
+
+你可以直接使用已经构建好的镜像文件：
+`yansongwei/tcpport:v1`。
+
+或者按照以下步骤自行构建。
+
+从以下地址克隆代码库：
+
+```
+https://github.com/yansongwel/Istio-TCPRoute-Sample-master
+```
+
+切换到代码目录可以看到一个Dockerfile：
+![图片.png](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/3fc67222239e3bf86a0829eed28acf64.png)
+
+运行以下命令构建镜像，例如：
+
+```
+[root@k8s-svr-node4 Istio-TCPRoute-Sample]# docker build -t yansongwei/tcpport:v1 .
+Sending build context to Docker daemon  195.6kB
+Step 1/10 : FROM mpfmedical/golang-glide AS builder
+ ---> b01261301bee
+Step 2/10 : RUN mkdir -p /go/src/github.com/osswangxining/go-echo
+ ---> Using cache
+ ---> ff29b01ce079
+Step 3/10 : COPY . /go/src/github.com/osswangxining/go-echo
+ ---> Using cache
+ ---> 73923210b7b4
+Step 4/10 : RUN go get ...
+ ---> Using cache
+ ---> 17d9ca095126
+Step 5/10 : RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o /go/bin/tcp-echo ./src/github.com/osswangxining/go-echo
+ ---> Using cache
+ ---> 93ed4207335d
+Step 6/10 : FROM alpine:latest
+ ---> 14119a10abf4
+Step 7/10 : RUN apk --no-cache add ca-certificates
+ ---> Using cache
+ ---> 2b2936efe832
+Step 8/10 : COPY --from=builder /go/bin/tcp-echo /tcp-echo
+ ---> Using cache
+ ---> 3d953bf64f2d
+Step 9/10 : WORKDIR /
+ ---> Using cache
+ ---> 04f90b5f5980
+Step 10/10 : ENTRYPOINT ["/tcp-echo"]
+ ---> Using cache
+ ---> 272d3d614a03
+Successfully built 272d3d614a03
+Successfully tagged yansongwei/tcpport:v1
+[root@k8s-svr-node4 Istio-TCPRoute-Sample]# docker push yansongwei/tcpport:v1
+The push refers to repository [docker.io/yansongwei/tcpport]
+f107fac6260d: Preparing 
+3e07c925ff68: Preparing 
+e2eb06d8af82: Preparing 
+denied: requested access to the resource is denied
+[root@k8s-svr-node4 Istio-TCPRoute-Sample]# cat Dockerfile 
+FROM mpfmedical/golang-glide AS builder
+
+RUN mkdir -p /go/src/github.com/osswangxining/go-echo
+COPY . /go/src/github.com/osswangxining/go-echo
+
+RUN go get ...
+RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o /go/bin/tcp-echo ./src/github.com/osswangxining/go-echo
+
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+
+COPY --from=builder /go/bin/tcp-echo /tcp-echo
+
+WORKDIR /
+
+ENTRYPOINT ["/tcp-echo"]
+
+docker build -t yansongwei/tcpport:v1 .
+```
+
+
+
+
+
 ## Build the Docker image
+
 Clone this repo and switch to this directory, and then run from a terminal:
 
 >> Note: you should replace the tag with your own tag.
 
 ```bash
-docker build -t registry.cn-hangzhou.aliyuncs.com/wangxining/tcptest:0.1 .
+docker build -t yansongwei/tcpport:v1 .
 ```
 
 And push this image:
 ```bash
-docker push registry.cn-hangzhou.aliyuncs.com/wangxining/tcptest:0.1
+docker push yansongwei/tcpport:v1
 ```
 
 ## Test with [Docker] before deploying to Kubernetes and Istio
 
 Run the container from a terminal:
 ```bash
-docker run --rm -it -e TCP_PORT=3333 -e NODE_NAME="EchoNode" -p 3333:3333 registry.cn-hangzhou.aliyuncs.com/wangxining/tcptest:0.1
+docker run --rm -it -e TCP_PORT=3333 -e NODE_NAME="EchoNode" -p 3333:3333 yansongwei/tcpport:v1
 ```
 
 In another terminal run:
